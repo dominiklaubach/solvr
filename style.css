@@ -1,0 +1,143 @@
+@font-face {
+    font-family: 'Roboto';
+    src: url('Roboto-Light.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'RobotoMedium';
+    src: url('Roboto-Medium.ttf') format('truetype');
+}
+
+body {
+    margin: 0;
+    font-family: Roboto;
+}
+
+body, body * {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+#sudoku {
+    overflow: hidden;
+    width: 50%;
+    margin-left: 25%;
+}
+
+#sudoku > .box {
+    float: left;
+    width: 33%;
+    overflow: hidden;
+    border-right: 2px solid red;
+    border-top: 2px solid red;
+}
+
+#sudoku > .box:nth-child(n+7) {
+    border-bottom: 2px solid red;
+}
+
+#sudoku > .box:nth-child(3n-2) {
+    border-left: 2px solid red;
+}
+
+#sudoku > .box:nth-child(3n) {
+    width: 34%;
+}
+
+#sudoku > .box > .input {
+    float: left;
+    width: 33%;
+    border-right: 1px solid red;
+    border-bottom: 1px solid red;
+}
+
+#sudoku > .box > .input:nth-child(3n) {
+    width: 34%;
+    border-right: none;
+}
+
+#sudoku > .box > .input:nth-child(n+7) {
+    border-bottom: none;
+}
+
+#sudoku > .box > .input > input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    text-align: center;
+    font-size: 2em;
+    font-family: RobotoMedium;
+}
+
+#sudoku > .box > .input > input:focus {
+    outline: none;
+}
+
+#console {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 1.5em;
+    text-align: center;
+    padding: 0 25%;
+    opacity: 1;
+    -moz-transition: opacity 0.5s ease-in;
+    -webkit-transition: opacity 0.5s ease-in;
+    transition: opacity 0.5s ease-in;
+}
+
+#console.hidden {
+    opacity: 0;
+}
+
+#buttons, #buttons > * {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+}
+
+#buttons {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+}
+
+#buttons > div {
+    float: right;
+    background: #999999;
+    color: #EEEEEE;
+    font-family: RobotoMedium;
+    font-size: 1em;
+    width: 33%;
+    cursor: pointer;
+    text-align: center;
+    border-top: 1px solid #666666;
+    border-left: 1px solid #666666;
+}
+
+#buttons > div:last-child {
+    border-left-color: #999999;
+    width: 34%;
+}
+
+#buttons > div.clear:hover {
+    background: #FF334B;
+    color: #9B2838;
+}
+
+#buttons > div.example:hover {
+    background: #3355FF;
+    color: #1F349B;
+}
+
+#buttons > div.solve:hover {
+    background: #33FFA0;
+    color: #2D9B52;
+}

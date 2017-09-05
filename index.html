@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="viewport"
+          content="initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no,width=device-width">
+    <link rel="apple-touch-icon" href="icon.png">
+    <title>Solvr</title>
+    <link href="style.css" rel="stylesheet" type="text/css">
+    <script src="jquery.min.js"></script>
+    <script src="underscore.min.js"></script>
+    <script>
+        var sudokuDOM;
+        var animation1;
+        var animation2;
+
+        var unsolvedNumbers = 81;
+
+        var example = [
+            [
+                null,
+                8,
+                null,
+                null,
+                null,
+                null,
+                null,
+                3,
+                null
+            ],
+            [
+                5,
+                1,
+                null,
+                7,
+                4,
+                null,
+                null,
+                null,
+                null
+            ],
+            [
+                null,
+                null,
+                7,
+                null,
+                null,
+                1,
+                null,
+                null,
+                8
+            ],
+            [
+                null,
+                null,
+                null,
+                5,
+                null,
+                9,
+                null,
+                null,
+                null
+            ],
+            [
+                4,
+                9,
+                null,
+                null,
+                null,
+                null,
+                6,
+                7,
+                null
+            ],
+            [
+                6,
+                null,
+                null,
+                null,
+                null,
+                null,
+                5,
+                9,
+                null
+            ],
+            [
+                2,
+                4,
+                null,
+                7,
+                9,
+                5,
+                null,
+                1,
+                null
+            ],
+            [
+                null,
+                null,
+                null,
+                null,
+                null,
+                4,
+                null,
+                2,
+                6
+            ],
+            [
+                null,
+                1,
+                null,
+                2,
+                3,
+                null,
+                null,
+                4,
+                null
+            ]
+        ];
+
+        var theme = function() {
+            var outerBorderWidth = 2;
+            var height = parseInt(sudokuDOM.css('width'), 10);
+            var marginTop = ($(window).height() - height) / 2;
+
+            sudokuDOM.css('height', height + 'px');
+            sudokuDOM.find('> .box > .input').css('height', (height - (4 * outerBorderWidth)) / 9 + 'px');
+
+            sudokuDOM.css('margin-top', marginTop + 'px');
+
+            $('#console').css('height', marginTop + 'px').css('line-height', marginTop + 'px');
+
+            $('#buttons').css('height', marginTop + 'px');
+            $('#buttons > div').css('margin-top', Math.ceil(marginTop / 2) + 'px').css('height', Math.floor(marginTop / 2) + 'px').css('line-height', Math.floor(marginTop / 2) + 'px');
+        };
+
+        var clear = function() {
+            sudokuDOM.find('> .box > .input > input').val('');
+            unsolvedNumbers = 81;
+
+            _alert('Sudoku cleared...');
+        };
+
+        var enterExample = function() {
+            for( var i = 0; i < example.length; i++ ) {
+                for( var j = 0; j < example[i].length; j++ ) {
+                    $($(sudokuDOM.find('> .box')[i]).find('> .input > input')[j]).val(example[i][j] || '');
+                }
+            }
+
+            _alert('Example entered...');
+        };
+
+        var _alert = function( message ) {
+            $('#console').text(message);
+            $('#console').removeClass('hidden');
+
+            window.clearTimeout(animation1);
+            window.clearTimeout(animation2);
+
+            animation1 = window.setTimeout(function() {
+                $('#console').addClass('hidden');
+
+                animation2 = window.setTimeout(function() {
+                    $('#console').text('');
+                }, 1000);
+            }, 2000);
+        };
+
+        var solve = function( attempt ) {
+            attempt = attempt || 1;
+
+            var _unsolvedNumbers = unsolvedNumbers;
+
+            sudokuDOM.find('> .box > .input > input').each(function() {
+                if( !$(this).val() ) {
+                    _solve($(this));
+                } else if( attempt === 1 ) {
+                    --unsolvedNumbers;
+                }
+            });
+
+            if( unsolvedNumbers > 0 && unsolvedNumbers !== _unsolvedNumbers ) {
+                solve(++attempt);
+            } else if( unsolvedNumbers == 0 ) {
+                _alert('Sudoku solved...');
+            } else {
+                _alert('There is either more than one or no solution available...');
+            }
+        };
+
+        var _solve = function( inputDOM ) {
+            var row = parseInt(inputDOM.attr('data-row'), 10);
+            var column = parseInt(inputDOM.attr('data-column'), 10);
+            var box = parseInt(inputDOM.attr('data-box'), 10);
+
+            var numbersInBox = [];
+            var numbersInRow = [];
+            var numbersInColumn = [];
+
+            _.each(sudokuDOM.find('> .box > .input > input[data-box=' + box + ']'), function( inputDOM ) {
+                inputDOM = $(inputDOM);
+                if( inputDOM && inputDOM.val() ) {
+                    numbersInBox.push(parseInt(inputDOM.val(), 10));
+                }
+            });
+
+            _.each(sudokuDOM.find('> .box > .input > input[data-row=' + row + ']'), function( inputDOM ) {
+                inputDOM = $(inputDOM);
+                if( inputDOM && inputDOM.val() ) {
+                    numbersInRow.push(parseInt(inputDOM.val(), 10));
+                }
+            });
+
+            _.each(sudokuDOM.find('> .box > .input > input[data-column=' + column + ']'), function( inputDOM ) {
+                inputDOM = $(inputDOM);
+                if( inputDOM && inputDOM.val() ) {
+                    numbersInColumn.push(parseInt(inputDOM.val(), 10));
+                }
+            });
+
+            var impossibleNumbers = _.unique(numbersInBox.concat(numbersInRow).concat(numbersInColumn));
+            var possibleNumbers = [];
+            for( var i = 1; i <= 9; i++ ) {
+                if( !_.contains(impossibleNumbers, i) ) {
+                    possibleNumbers.push(i);
+                }
+            }
+
+            if( possibleNumbers && possibleNumbers.length === 1 ) {
+                inputDOM.val(possibleNumbers[0]);
+                --unsolvedNumbers;
+            }
+        };
+
+        $(document).ready(function() {
+            sudokuDOM = $('#sudoku');
+
+            sudokuDOM.empty();
+
+            for( var i = 0; i < 9; i++ ) {
+                var boxHTML = '<div class="box">';
+
+                for( var j = 0; j < 9; j++ ) {
+                    var value = null;
+                    if( example && example[i] && example[i][j] ) {
+                        value = example[i][j];
+                    }
+
+                    boxHTML += '<div class="input"><input type="text" maxlength="1" data-box="' + i + '" data-row="' + ((Math.floor(i / 3) * 3) + Math.floor(j / 3)) + '" data-column="' + ((i % 3) * 3 + (j % 3)) + '"' + (value ? ' value="' + value + '"' : '') + '/> </div>';
+                }
+
+                boxHTML += '</div>';
+
+                sudokuDOM.append(boxHTML);
+            }
+
+            $('#buttons .solve').bind('click', function() {
+                solve();
+            });
+
+            $('#buttons .clear').bind('click', function() {
+                clear();
+            });
+
+            $('#buttons .example').bind('click', function() {
+                enterExample();
+            });
+
+            theme();
+        });
+    </script>
+</head>
+<body>
+<div id="console"></div>
+<div id="buttons">
+    <div class="solve">Solve</div>
+    <div class="example">Example</div>
+    <div class="clear">Clear</div>
+</div>
+<div id="sudoku">
+
+</div>
+</body>
+</html>
